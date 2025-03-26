@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Content Anonymizer</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: var(--figma-color-bg);
+      color: var(--figma-color-text);
+    }
+    label {
+      display: block;
+      margin-bottom: 10px;
+    }
+    .button-container {
+      margin-top: 20px;
+      display: flex;
+      gap: 8px;
+    }
+    button {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: none;
+      background: var(--figma-color-bg-brand);
+      color: var(--figma-color-text-onbrand);
+      cursor: pointer;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    button.secondary {
+      background: var(--figma-color-bg-secondary);
+      color: var(--figma-color-text);
+    }
+  </style>
+</head>
+<body>
+  <form id="options">
+    <label>
+      <input type="checkbox" id="products" checked>
+      Anonymize product names
+    </label>
+    <label>
+      <input type="checkbox" id="prices" checked>
+      Anonymize prices
+    </label>
+    <label>
+      <input type="checkbox" id="images">
+      Replace images with placeholder
+    </label>
+    <div class="button-container">
+      <button type="button" id="anonymize">Anonymize Content</button>
+      <button type="button" id="stop" class="secondary" style="display: none">Stop</button>
+      <button type="button" id="cancel" class="secondary">Cancel</button>
+    </div>
+  </form>
+
+  <script>
+    // Initialize plugin state
+    let isProcessing = false;
+
+    // Button click handlers
+    document.getElementById('anonymize').onclick = () => {
+      const options = {
+        products: document.getElementById('products').checked,
+        prices: document.getElementById('prices').checked,
+        images: document.getElementById('images').checked
+      };
+
+      isProcessing = true;
+      document.getElementById('anonymize').disabled = true;
+      document.getElementById('stop').style.display = 'block';
+      
+      parent.postMessage({ pluginMessage: { type: 'anonymize', options } }, '*');
+    };
+
+    document.getElementById('stop').onclick = () => {
+      parent.postMessage({ pluginMessage: { type: 'stop' } }, '*');
+    };
+
+    document.getElementById('cancel').onclick = () => {
+      parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
+    };
+
+    // Listen for messages from the plugin code
+    window.onmessage = (event) => {
+      const msg = event.data.pluginMessage;
+      
+      if (msg.type === 'updateState') {
+        if (msg.state === 'start') {
+          document.getElementById('anonymize').disabled = true;
+          document.getElementById('stop').style.display = 'block';
+        } else if (msg.state === 'complete' || msg.state === 'stop' || msg.state === 'error') {
+          isProcessing = false;
+          document.getElementById('anonymize').disabled = false;
+          document.getElementById('stop').style.display = 'none';
+        }
+
+        if (msg.message) {
+          console.log(msg.message);
+        }
+
+        // Update button state based on selection
+        if (!isProcessing) {
+          document.getElementById('anonymize').disabled = !msg.hasSelection;
+        }
+      }
+    };
+  </script>
+</body>
+</html>

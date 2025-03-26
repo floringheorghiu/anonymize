@@ -1,0 +1,43 @@
+{
+  "name": "figma-anonymize-content",
+  "version": "1.0.0-stable",
+  "description": "Anonymize content in Figma designs",
+  "type": "module",
+  "main": "code.js",
+  "scripts": {
+    "build": "npm run build:plugin && npm run copy:ui",
+    "build:plugin": "vite build -c vite.plugin.config.ts",
+    "copy:ui": "copy /Y src\\ui.html dist\\ui.html",
+    "watch": "npm run build:plugin -- --watch"
+  },
+  "author": "Your Name",
+  "license": "MIT",
+  "keywords": [
+    "figma",
+    "figma-plugin",
+    "anonymization",
+    "privacy",
+    "content-masking"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/figma-anonymize-content"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.78.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "autoprefixer": "^10.4.16",
+    "concurrently": "^8.2.2",
+    "postcss": "^8.4.32",
+    "tailwindcss": "^3.3.6",
+    "typescript": "^5.2.2",
+    "vite": "^5.0.0",
+    "vite-plugin-singlefile": "^0.13.5"
+  }
+}
