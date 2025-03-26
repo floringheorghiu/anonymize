@@ -148,28 +148,28 @@ function anonymizeImage(node: SceneNode, options: AnonymizeOptions): Promise<voi
   if ("fills" in node) {
     // Create a new array to modify since Figma's fills array is read-only
     var fills = (node.fills as Paint[]).slice();
-    var promises: Promise<void>[] = [];
+    var hasImageFill = false;
 
     for (var i = 0; i < fills.length; i++) {
       var fill = fills[i];
       if (fill.type === "IMAGE") {
-        // Create a promise to load and replace the image
-        promises.push(
-          readImageBytes('./assets/product_placeholder_image.png')
-            .then(function(bytes) {
-              var placeholderImageHash = figma.createImage(bytes);
-              // Replace the original image fill with the placeholder
-              fills[i] = {
-                type: "IMAGE",
-                imageHash: placeholderImageHash.hash,
-                scaleMode: (fill as ImagePaint).scaleMode // Preserve original scaling mode
-              };
-              node.fills = fills; // Assign the new array back to node.fills
-            })
-        );
+        hasImageFill = true;
+        // Use the already defined placeholder image directly
+        var placeholderImageHash = figma.createImage(placeholderImage);
+        
+        // Replace the original image fill with the placeholder
+        fills[i] = {
+          type: "IMAGE",
+          imageHash: placeholderImageHash.hash,
+          scaleMode: (fill as ImagePaint).scaleMode // Preserve original scaling mode
+        };
       }
     }
-    return Promise.all(promises).then(() => {});
+    
+    // Only update fills if we actually found and replaced an image
+    if (hasImageFill) {
+      node.fills = fills;
+    }
   }
   return Promise.resolve();
 }

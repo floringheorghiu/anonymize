@@ -4,10 +4,10 @@
   "description": "Anonymize content in Figma designs",
   "type": "module",
   "main": "code.js",
-  "scripts": {
+ "scripts": {
     "build": "npm run build:plugin && npm run copy:ui",
-    "build:plugin": "vite build -c vite.plugin.config.ts",
-    "copy:ui": "copy /Y src\\ui.html dist\\ui.html",
+    "build:plugin": "npx vite build -c vite.plugin.config.ts",
+    "copy:ui": "cp src/ui.html dist/ui.html",
     "watch": "npm run build:plugin -- --watch"
   },
   "author": "Your Name",
@@ -37,7 +37,7 @@
     "postcss": "^8.4.32",
     "tailwindcss": "^3.3.6",
     "typescript": "^5.2.2",
-    "vite": "^5.0.0",
+    "vite": "^6.2.3",
     "vite-plugin-singlefile": "^0.13.5"
   }
 }
