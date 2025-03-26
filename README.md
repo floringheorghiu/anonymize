@@ -1,8 +1,8 @@
 # Figma Content Anonymizer Plugin
 
-A Figma plugin that helps anonymize sensitive content in your designs by replacing product names with Lorem ipsum text and prices with generic placeholders.
+A Figma plugin that helps anonymize sensitive content in your designs by replacing product names with Lorem ipsum text, prices with generic placeholders, and images with neutral content.
 
-## Version 1.0.0-stable
+## Version 1.1.0-stable
 
 ### Features
 
@@ -27,7 +27,9 @@ A Figma plugin that helps anonymize sensitive content in your designs by replaci
   - Handles parentheses: "(66%)" → "(00%)"
 
 - **Image Anonymization**
-  - Option to replace image content with gray placeholders
+  - Replaces image content with neutral gray placeholders
+  - Works with various fill types and preserves original scaling modes
+  - Handles both background images and image fills
 
 - **Process Control**
   - Stop button to halt processing at any time
@@ -41,9 +43,15 @@ A Figma plugin that helps anonymize sensitive content in your designs by replaci
 3. Choose your anonymization options:
    - Anonymize Product Names (length-matching Lorem ipsum)
    - Anonymize Prices (preserves format and currency)
-   - Anonymize Images (optional)
+   - Anonymize Images (replaces with neutral placeholders)
 4. Click "Anonymize" to process the selection
 5. Use the Stop button if you need to halt the process
+
+### Best Practices
+
+- For large documents, process sections gradually to monitor progress
+- Use selection to target specific parts of your design
+- Check your results after anonymization to ensure all sensitive content is properly replaced
 
 ## Development Setup
 
