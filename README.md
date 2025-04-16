@@ -4,6 +4,18 @@ A Figma plugin that helps anonymize sensitive content in your designs by replaci
 
 ## Version 1.1.0-stable
 
+### What's New (v1.24)
+- **Custom Placeholder Image Upload:** Upload your own PNG/JPG as a placeholder for anonymized images. If not set, the built-in placeholder is used.
+- **Improved Currency Handling:**
+  - Change all prices to a selected currency symbol (dropdown) or your own acronym.
+  - You can now change the currency for already-anonymized prices without issues.
+- **Microcopy & UI Enhancements:**
+  - Shorter, clearer labels for all options.
+  - Streamlined and modernized UI.
+  - Version display and "How to use" help link added to the bottom right.
+- **Help Modal:**
+  - Click "How to use" for a concise, user-friendly modal with plugin instructions.
+
 ### Features
 
 - **Smart Text Anonymization**
@@ -13,6 +25,8 @@ A Figma plugin that helps anonymize sensitive content in your designs by replaci
 - **Advanced Price Handling**
   - Preserves currency symbols and their position (prefix/suffix)
   - Maintains decimal separators and number format
+  - Change currency symbol or use a custom acronym
+  - Re-anonymize prices to update currency symbol even if already anonymized
   - Examples:
     - "€175.00" → "€000.00"
     - "RRP €175.00 Save €115.01 (66%)" → "RRP €000.00 Save €000.00 (00%)"
@@ -27,8 +41,14 @@ A Figma plugin that helps anonymize sensitive content in your designs by replaci
   - Handles parentheses: "(66%)" → "(00%)"
 
 - **Image Anonymization**
-  - Replaces image content with neutral gray placeholders
+  - Replaces image content with a neutral placeholder
+  - Upload your own PNG/JPG as a custom placeholder, or use the built-in default
   - Works with various fill types and preserves original scaling modes
+
+- **Modern UI & UX**
+  - Clear, concise microcopy
+  - Version display and help link
+  - Minimal, accessible help modal
   - Handles both background images and image fills
 
 - **Process Control**
@@ -38,14 +58,15 @@ A Figma plugin that helps anonymize sensitive content in your designs by replaci
 
 ## Usage
 
-1. Select the frames or elements you want to anonymize
-2. Run the plugin from Plugins menu
-3. Choose your anonymization options:
-   - Anonymize Product Names (length-matching Lorem ipsum)
-   - Anonymize Prices (preserves format and currency)
-   - Anonymize Images (replaces with neutral placeholders)
-4. Click "Anonymize" to process the selection
-5. Use the Stop button if you need to halt the process
+1. Select the frames or elements you want to anonymize in Figma.
+2. Run the plugin from the Plugins menu.
+3. Choose your options:
+   - **Anonymize product names**
+   - **Anonymize prices** (optionally change currency or use your own acronym)
+   - **Replace images with placeholder** (optionally upload your own PNG/JPG)
+4. Click **Anonymize Content** to process your selection.
+5. Use the **Stop** button to halt processing if needed.
+6. Click **How to use** in the UI for a quick help modal at any time.
 
 ### Best Practices
 
