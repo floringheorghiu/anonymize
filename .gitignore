@@ -26,6 +26,12 @@ figma_logs/
 *.njsproj
 *.sln
 *.sw?
+Screenshot 2025-04-16 at 3.06.24 PM.png
+Screenshot 2025-04-16 at 9.56.47 AM.png
+
+
+# Windsurf
+.windsurfrules
 
 # OS generated files
 .DS_Store
