@@ -53,7 +53,7 @@
     <div style="margin-left: 24px; margin-bottom: 10px;">
       <label style="display: flex; align-items: center; margin-bottom: 4px;">
         <input type="checkbox" id="useCurrencySelection">
-        <span style="margin-left: 6px;">Change current currency symbol with selection</span>
+        <span style="margin-left: 6px;">Change currency</span>
         <select id="currencySymbol" style="margin-left: 8px; min-width: 110px;">
           <option value="$">$ - Dollar</option>
           <option value="£">£ - Pound</option>
@@ -80,17 +80,17 @@
       </label>
       <label style="display: flex; align-items: center;">
         <input type="checkbox" id="useCurrencyInput">
-        <span style="margin-left: 6px;">Change current currency symbol with your input</span>
+        <span style="margin-left: 6px;">Change currency with acronym</span>
         <input type="text" id="customCurrency" placeholder="USD" maxlength="6" style="margin-left: 8px; width: 60px;">
       </label>
     </div>
     <label>
       <input type="checkbox" id="images">
-      Replace images with placeholder
+      Replace images with placeholder (PNG/JPG)
     </label>
     <div id="custom-placeholder-section" style="margin-bottom: 10px; margin-left: 24px;">
       <label style="display: flex; align-items: center;">
-        <span style="margin-right: 8px;">Upload your own placeholder image (PNG/JPG, small size recommended):</span>
+        <!-- span style="margin-right: 8px;">Upload image:</span> -->
         <input type="file" id="customPlaceholderImageInput" accept="image/png,image/jpeg" style="flex:1;">
       </label>
       <div id="custom-placeholder-preview" style="margin-top: 6px;"></div>
