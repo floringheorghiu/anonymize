@@ -154,13 +154,20 @@ function anonymizeText(node: TextNode, options: AnonymizeOptions): void {
     if (typeof node.fontName === 'object' && 'family' in node.fontName && 'style' in node.fontName) {
       figma.loadFontAsync(node.fontName as FontName).then(function() {
       var text = node.characters;
-      if (text.length === 1 || isTextAnonymized(text)) return;
-      if (options.prices && (pricePattern.test(text) || percentagePattern.test(text))) {
+      const wasAnonymized = isTextAnonymized(text);
+      // Only skip if already anonymized and NOT changing currency
+      if (text.length === 1 || (wasAnonymized && !(options.prices && options.useCurrencySelection))) return;
+      let textForProcessing = text;
+      // If re-processing for currency change, strip the marker first
+      if (wasAnonymized && options.prices && options.useCurrencySelection) {
+        textForProcessing = text.slice(0, -ANONYMIZED_MARKER.length);
+      }
+      if (options.prices && (pricePattern.test(textForProcessing) || percentagePattern.test(textForProcessing))) {
         // Reset regex lastIndex
         pricePattern.lastIndex = 0;
         percentagePattern.lastIndex = 0;
         // Handle price anonymization with currency replacement if requested
-        node.characters = markAsAnonymized(anonymizePrice(text, options));
+        node.characters = markAsAnonymized(anonymizePrice(textForProcessing, options));
       } else if (options.products && !pricePattern.test(text)) {
         // Handle product name anonymization only if no prices present
         var targetLength = Math.max(2, text.length - 2);

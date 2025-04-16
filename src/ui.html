@@ -102,7 +102,40 @@
     </div>
   </form>
 
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px; font-size: 14px; color: #999;">
+    <span>version.1.24</span>
+    <a href="#" id="help-link" style="color: #3b82f6; text-decoration: underline; cursor: pointer;">How to use</a>
+  </div>
+
+  <!-- Help Modal -->
+  <div id="help-modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.35);">
+    <div style="background:#fff; height: 100%; max-width:420px; margin:0px auto; padding:28px 24px 20px 24px; border-radius:0px; box-shadow:0 8px 32px rgba(0,0,0,0.18); position:relative;">
+      <button id="close-help" style="position:absolute; top:10px; right:14px; background:none; border:none; font-size:1.4em; cursor:pointer; color:#888;">×</button>
+      <h2 style="margin-top:0; font-size:1.15em; margin-bottom: 14px;">How to Use Content Anonymizer</h2>
+      <ul style="padding-left: 18px; margin-bottom: 0; font-size:0.9em;">
+        <li>Select which content to anonymize (product names, prices, images).</li>
+        <li>For prices, you can change the currency or use your own acronym.</li>
+        <li>For images, you can upload a PNG or JPG as a placeholder.<br>
+          <b>Note:</b> If you don’t upload a custom image, the embedded placeholder is applied.</li>
+        <li>Select frames or elements, then click <b>Anonymize Content</b> to apply changes.</li>
+        <li>Click <b>Cancel</b> to close the plugin without changes.</li>
+      </ul>
+    </div>
+  </div>
+
   <script>
+    // Help modal logic
+    document.getElementById('help-link').onclick = function(e) {
+      e.preventDefault();
+      document.getElementById('help-modal').style.display = 'block';
+    };
+    document.getElementById('close-help').onclick = function() {
+      document.getElementById('help-modal').style.display = 'none';
+    };
+    document.getElementById('help-modal').onclick = function(e) {
+      if (e.target === this) this.style.display = 'none';
+    };
+
     // Initialize plugin state
     let isProcessing = false;
 
