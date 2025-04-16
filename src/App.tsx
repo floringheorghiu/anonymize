@@ -5,14 +5,45 @@ interface AnonymizeOptions {
   products: boolean;
   prices: boolean;
   images: boolean;
+  useCurrencySelection?: boolean;
+  useCurrencyInput?: boolean;
 }
+
+const CURRENCY_OPTIONS = [
+  { value: '$', label: '$ - Dollar' },
+  { value: '£', label: '£ - Pound' },
+  { value: '€', label: '€ - Euro' },
+  { value: '¥', label: '¥ - Yen' },
+  { value: '₹', label: '₹ - Rupee' },
+  { value: '₩', label: '₩ - Won' },
+  { value: '₽', label: '₽ - Ruble' },
+  { value: '₺', label: '₺ - Lira' },
+  { value: '₫', label: '₫ - Dong' },
+  { value: '₦', label: '₦ - Naira' },
+  { value: '₴', label: '₴ - Hryvnia' },
+  { value: '₱', label: '₱ - Peso' },
+  { value: '₲', label: '₲ - Guarani' },
+  { value: '₵', label: '₵ - Cedi' },
+  { value: '₡', label: '₡ - Colon' },
+  { value: '₸', label: '₸ - Tenge' },
+  { value: '₮', label: '₮ - Tugrik' },
+  { value: '₺', label: '₺ - Turkish Lira' },
+  { value: '₼', label: '₼ - Azerbaijani Manat' },
+  { value: '₾', label: '₾ - Lari' },
+  { value: '₿', label: '₿ - Bitcoin' },
+  { value: '¤', label: '¤ - Generic Currency' },
+];
 
 export default function App() {
   const [options, setOptions] = useState<AnonymizeOptions>({
     products: true,
     prices: true,
     images: false,
+    useCurrencySelection: false,
+    useCurrencyInput: false,
   });
+  const [currencySymbol, setCurrencySymbol] = useState(CURRENCY_OPTIONS[0].value);
+  const [customCurrency, setCustomCurrency] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [hasSelection, setHasSelection] = useState(false);
 
@@ -56,10 +87,25 @@ export default function App() {
   }, []);
 
   const handleOptionChange = (option: keyof AnonymizeOptions) => {
-    setOptions(prev => ({
-      ...prev,
-      [option]: !prev[option]
-    }));
+    // For mutually exclusive currency options
+    if (option === 'useCurrencySelection') {
+      setOptions(prev => ({
+        ...prev,
+        useCurrencySelection: !prev.useCurrencySelection,
+        useCurrencyInput: false
+      }));
+    } else if (option === 'useCurrencyInput') {
+      setOptions(prev => ({
+        ...prev,
+        useCurrencyInput: !prev.useCurrencyInput,
+        useCurrencySelection: false
+      }));
+    } else {
+      setOptions(prev => ({
+        ...prev,
+        [option]: !prev[option]
+      }));
+    }
   };
 
   const handleAnonymize = () => {
@@ -67,7 +113,11 @@ export default function App() {
     parent.postMessage({ 
       pluginMessage: { 
         type: 'anonymize',
-        options 
+        options: {
+          ...options,
+          currencySymbol: options.useCurrencySelection ? currencySymbol : undefined,
+          customCurrency: options.useCurrencyInput ? customCurrency : undefined,
+        }
       }
     }, '*');
   };
@@ -122,6 +172,53 @@ export default function App() {
           />
           <span>Anonymize Images</span>
         </label>
+
+        {/* Currency symbol/acronym replacement controls */}
+        <div className="flex flex-col space-y-2 pt-2">
+          <label className="flex items-center space-x-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={!!options.useCurrencySelection}
+              onChange={() => handleOptionChange('useCurrencySelection')}
+              className="form-checkbox"
+              disabled={isProcessing || !options.prices}
+            />
+            <span>Change current currency symbol with selection</span>
+            <select
+              className="ml-2 px-2 py-1 border rounded"
+              value={currencySymbol}
+              onChange={e => setCurrencySymbol(e.target.value)}
+              disabled={!options.useCurrencySelection || isProcessing || !options.prices}
+              style={{ minWidth: 130 }}
+            >
+              {CURRENCY_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="flex items-center space-x-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={!!options.useCurrencyInput}
+              onChange={() => handleOptionChange('useCurrencyInput')}
+              className="form-checkbox"
+              disabled={isProcessing || !options.prices}
+            />
+            <span>Change current currency symbol with your input</span>
+            <input
+              className="ml-2 px-2 py-1 border rounded w-24"
+              type="text"
+              value={customCurrency}
+              onChange={e => setCustomCurrency(e.target.value)}
+              placeholder="USD"
+              maxLength={6}
+              disabled={!options.useCurrencyInput || isProcessing || !options.prices}
+            />
+          </label>
+        </div>
       </div>
 
       <div className="flex space-x-2">

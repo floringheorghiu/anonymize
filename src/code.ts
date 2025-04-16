@@ -23,9 +23,13 @@ var placeholderImage = new Uint8Array([
 
 // Type definitions
 interface AnonymizeOptions {
-  products: boolean;  // Replace product names with Lorem ipsum
-  prices: boolean;    // Replace prices with zeros
-  images: boolean;    // Replace images with placeholder
+  prices?: boolean;
+  products?: boolean;
+  images?: boolean;
+  useCurrencySelection?: boolean;
+  currencySymbol?: string;
+  useCurrencyInput?: boolean;
+  customCurrency?: string;
 }
 
 // ============================================================================
@@ -66,44 +70,67 @@ var percentagePattern = /\(?(\d+\.?\d*)%\)?/g;
 var numberWithSeparatorPattern = /\d+([.,]\d{2})?/g;
 
 // Function to anonymize prices in a given text
-function anonymizePrice(text: string): string {
-  // Don't process if no currency or percentage patterns found
-  if (!pricePattern.test(text) && !percentagePattern.test(text)) {
-    return text;
-  }
+interface AnonymizeOptions {
+  prices?: boolean;
+  products?: boolean;
+  images?: boolean;
+  useCurrencySelection?: boolean;
+  currencySymbol?: string;
+  useCurrencyInput?: boolean;
+  customCurrency?: string;
+}
 
-  // Reset regex lastIndex
-  pricePattern.lastIndex = 0;
-  percentagePattern.lastIndex = 0;
+function anonymizePrice(text: string, options: AnonymizeOptions): string {
+  try {
+    // Don't process if no currency or percentage patterns found
+    if (!pricePattern.test(text) && !percentagePattern.test(text)) {
+      return text;
+    }
+    // Reset regex lastIndex
+    pricePattern.lastIndex = 0;
+    percentagePattern.lastIndex = 0;
 
-  // First, handle currency amounts
-  var result = text.replace(pricePattern, function(match) {
-    // Preserve currency symbol position
-    var currencySymbol = currencySymbols.find(function(symbol) { return match.includes(symbol); });
-    if (!currencySymbol) return match;
+    // Determine replacement symbol/acronym
+    let replaceSymbol: string | null = null;
+    if (options && options.prices) {
+      if (options.useCurrencySelection && options.currencySymbol) {
+        replaceSymbol = options.currencySymbol;
+      } else if (options.useCurrencyInput && options.customCurrency) {
+        replaceSymbol = options.customCurrency;
+      }
+    }
 
-    var isPrefix = match.startsWith(currencySymbol);
-    var numberPart = match.replace(currencySymbol, '').trim();
-
-    // Replace numbers with zeros while preserving separators
-    var anonymizedNumber = numberPart.replace(numberWithSeparatorPattern, function(num) {
-      var whole = num.split(/[.,]/)[0];
-      var decimal = num.split(/[.,]/)[1];
-      return '0'.repeat(whole.length) + (decimal ? '.' + '0'.repeat(decimal.length) : '');
+    // First, handle currency amounts
+    var result = text.replace(pricePattern, function(match: string): string {
+      var currencySymbol = currencySymbols.find(function(symbol) { return match.includes(symbol); });
+      if (!currencySymbol) return match;
+      var isPrefix = match.startsWith(currencySymbol);
+      var numberPart = match.replace(currencySymbol, '').trim();
+      var anonymizedNumber = numberPart.replace(numberWithSeparatorPattern, function(num: string): string {
+        var whole = num.split(/[.,]/)[0];
+        var decimal = num.split(/[.,]/)[1];
+        return '0'.repeat(whole.length) + (decimal ? '.' + '0'.repeat(decimal.length) : '');
+      });
+      // Replace symbol if requested
+      if (replaceSymbol !== null && replaceSymbol !== undefined && replaceSymbol !== '') {
+        return isPrefix ? replaceSymbol + anonymizedNumber : anonymizedNumber + replaceSymbol;
+      } else {
+        return isPrefix ? currencySymbol + anonymizedNumber : anonymizedNumber + currencySymbol;
+      }
     });
 
-    return isPrefix ? currencySymbol + anonymizedNumber : anonymizedNumber + currencySymbol;
-  });
-
-  // Then, handle percentages
-  result = result.replace(percentagePattern, function(match) {
-    var hasParens = match.startsWith('(') && match.endsWith(')');
-    var number = match.replace(/[()%]/g, '');
-    var zeros = '0'.repeat(number.replace('.', '').length);
-    return hasParens ? '(' + zeros + '%)' : zeros + '%';
-  });
-
-  return result;
+    // Then, handle percentages
+    result = result.replace(percentagePattern, function(match: string): string {
+      var hasParens = match.startsWith('(') && match.endsWith(')');
+      var number = match.replace(/[()%]/g, '');
+      var zeros = '0'.repeat(number.replace('.', '').length);
+      return hasParens ? '(' + zeros + '%)' : zeros + '%';
+    });
+    return result;
+  } catch (e) {
+    console.log('anonymizePrice error:', e);
+    return text;
+  }
 }
 
 // Full Lorem ipsum text for more natural-looking replacements
@@ -120,26 +147,28 @@ function generateLoremText(length: number): string {
 }
 
 function anonymizeText(node: TextNode, options: AnonymizeOptions): void {
-  figma.loadFontAsync(node.fontName as FontName).then(function() {
-    var text = node.characters;
-    
-    // Skip if already anonymized or single character
-    if (text.length === 1 || isTextAnonymized(text)) return;
-    
-    if (options.prices && (pricePattern.test(text) || percentagePattern.test(text))) {
-      // Reset regex lastIndex
-      pricePattern.lastIndex = 0;
-      percentagePattern.lastIndex = 0;
-      
-      // Handle price anonymization
-      node.characters = markAsAnonymized(anonymizePrice(text));
-    } else if (options.products && !pricePattern.test(text)) {
-      // Handle product name anonymization only if no prices present
-      // Make replacement 2 chars shorter, but ensure minimum length of 2
-      var targetLength = Math.max(2, text.length - 2);
-      node.characters = markAsAnonymized(generateLoremText(targetLength));
-    }
-  });
+  try {
+    // Defensive: Only load font if node.fontName is a FontName (not figma.mixed)
+    if (typeof node.fontName === 'object' && 'family' in node.fontName && 'style' in node.fontName) {
+      figma.loadFontAsync(node.fontName as FontName).then(function() {
+      var text = node.characters;
+      if (text.length === 1 || isTextAnonymized(text)) return;
+      if (options.prices && (pricePattern.test(text) || percentagePattern.test(text))) {
+        // Reset regex lastIndex
+        pricePattern.lastIndex = 0;
+        percentagePattern.lastIndex = 0;
+        // Handle price anonymization with currency replacement if requested
+        node.characters = markAsAnonymized(anonymizePrice(text, options));
+      } else if (options.products && !pricePattern.test(text)) {
+        // Handle product name anonymization only if no prices present
+        var targetLength = Math.max(2, text.length - 2);
+        node.characters = markAsAnonymized(generateLoremText(targetLength));
+      }
+    });
+    } // End if fontName is FontName
+  } catch (e) {
+    console.log('anonymizeText error:', e);
+  }
 }
 
 function anonymizeImage(node: SceneNode, options: AnonymizeOptions): Promise<void> {
@@ -194,7 +223,12 @@ figma.on("selectionchange", function() {
 });
 
 // Handle messages from the UI
-figma.ui.onmessage = function(msg: { type: string; options?: AnonymizeOptions }): void {
+// Defensive: log all incoming messages for debugging
+figma.ui.onmessage = function(msg) {
+  try {
+    console.log('Received message from UI:', msg);
+  } catch (e) {}
+
   switch (msg.type) {
     case 'stop':
       if (isProcessing) {

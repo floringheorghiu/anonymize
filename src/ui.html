@@ -48,6 +48,42 @@
       <input type="checkbox" id="prices" checked>
       Anonymize prices
     </label>
+
+    <!-- Currency symbol/acronym replacement controls -->
+    <div style="margin-left: 24px; margin-bottom: 10px;">
+      <label style="display: flex; align-items: center; margin-bottom: 4px;">
+        <input type="checkbox" id="useCurrencySelection">
+        <span style="margin-left: 6px;">Change current currency symbol with selection</span>
+        <select id="currencySymbol" style="margin-left: 8px; min-width: 110px;">
+          <option value="$">$ - Dollar</option>
+          <option value="£">£ - Pound</option>
+          <option value="€">€ - Euro</option>
+          <option value="¥">¥ - Yen</option>
+          <option value="₹">₹ - Rupee</option>
+          <option value="₩">₩ - Won</option>
+          <option value="₽">₽ - Ruble</option>
+          <option value="₺">₺ - Lira</option>
+          <option value="₫">₫ - Dong</option>
+          <option value="₦">₦ - Naira</option>
+          <option value="₴">₴ - Hryvnia</option>
+          <option value="₱">₱ - Peso</option>
+          <option value="₲">₲ - Guarani</option>
+          <option value="₵">₵ - Cedi</option>
+          <option value="₡">₡ - Colon</option>
+          <option value="₸">₸ - Tenge</option>
+          <option value="₮">₮ - Tugrik</option>
+          <option value="₼">₼ - Azerbaijani Manat</option>
+          <option value="₾">₾ - Lari</option>
+          <option value="₿">₿ - Bitcoin</option>
+          <option value="¤">¤ - Generic Currency</option>
+        </select>
+      </label>
+      <label style="display: flex; align-items: center;">
+        <input type="checkbox" id="useCurrencyInput">
+        <span style="margin-left: 6px;">Change current currency symbol with your input</span>
+        <input type="text" id="customCurrency" placeholder="USD" maxlength="6" style="margin-left: 8px; width: 60px;">
+      </label>
+    </div>
     <label>
       <input type="checkbox" id="images">
       Replace images with placeholder
@@ -63,13 +99,43 @@
     // Initialize plugin state
     let isProcessing = false;
 
+    // Mutually exclusive currency option logic
+    const useCurrencySelection = document.getElementById('useCurrencySelection');
+    const useCurrencyInput = document.getElementById('useCurrencyInput');
+    const currencySymbol = document.getElementById('currencySymbol');
+    const customCurrency = document.getElementById('customCurrency');
+
+    function updateCurrencyControls() {
+      if (useCurrencySelection.checked) {
+        useCurrencyInput.checked = false;
+        currencySymbol.disabled = false;
+        customCurrency.disabled = true;
+      } else if (useCurrencyInput.checked) {
+        useCurrencySelection.checked = false;
+        currencySymbol.disabled = true;
+        customCurrency.disabled = false;
+      } else {
+        currencySymbol.disabled = true;
+        customCurrency.disabled = true;
+      }
+    }
+
+    useCurrencySelection.addEventListener('change', updateCurrencyControls);
+    useCurrencyInput.addEventListener('change', updateCurrencyControls);
+
     // Button click handlers
     document.getElementById('anonymize').onclick = () => {
       const options = {
         products: document.getElementById('products').checked,
         prices: document.getElementById('prices').checked,
-        images: document.getElementById('images').checked
+        images: document.getElementById('images').checked,
+        useCurrencySelection: useCurrencySelection.checked,
+        useCurrencyInput: useCurrencyInput.checked,
+        currencySymbol: useCurrencySelection.checked ? currencySymbol.value : undefined,
+        customCurrency: useCurrencyInput.checked ? customCurrency.value : undefined
       };
+
+      console.log('Anonymize options:', options);
 
       isProcessing = true;
       document.getElementById('anonymize').disabled = true;
@@ -77,6 +143,9 @@
       
       parent.postMessage({ pluginMessage: { type: 'anonymize', options } }, '*');
     };
+
+    // Initialize controls on load
+    updateCurrencyControls();
 
     document.getElementById('stop').onclick = () => {
       parent.postMessage({ pluginMessage: { type: 'stop' } }, '*');
