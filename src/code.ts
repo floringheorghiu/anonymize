@@ -30,6 +30,7 @@ interface AnonymizeOptions {
   currencySymbol?: string;
   useCurrencyInput?: boolean;
   customCurrency?: string;
+  customPlaceholderImage?: string;
 }
 
 // ============================================================================
@@ -78,6 +79,7 @@ interface AnonymizeOptions {
   currencySymbol?: string;
   useCurrencyInput?: boolean;
   customCurrency?: string;
+  customPlaceholderImage?: string;
 }
 
 function anonymizePrice(text: string, options: AnonymizeOptions): string {
@@ -171,6 +173,25 @@ function anonymizeText(node: TextNode, options: AnonymizeOptions): void {
   }
 }
 
+// Utility: decode base64 to Uint8Array
+// Pure JS base64 decoder for Figma plugin backend
+function base64ToUint8Array(base64: string): Uint8Array {
+  // Remove data URL prefix if present
+  const base64Data = base64.includes(',') ? base64.split(',')[1] : base64;
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+  let str = base64Data.replace(/=+$/, '');
+  let output = [];
+
+  for (let bc = 0, bs = 0, buffer, i = 0; (buffer = str.charAt(i++)); ~buffer &&
+    (bs = bc % 4 ? bs * 64 + buffer : buffer,
+      bc++ % 4) ? output.push(255 & bs >> (-2 * bc & 6)) : 0
+  ) {
+    buffer = chars.indexOf(buffer);
+  }
+
+  return new Uint8Array(output);
+}
+
 function anonymizeImage(node: SceneNode, options: AnonymizeOptions): Promise<void> {
   if (!options.images) return Promise.resolve();
 
@@ -183,9 +204,29 @@ function anonymizeImage(node: SceneNode, options: AnonymizeOptions): Promise<voi
       var fill = fills[i];
       if (fill.type === "IMAGE") {
         hasImageFill = true;
-        // Use the already defined placeholder image directly
-        var placeholderImageHash = figma.createImage(placeholderImage);
-        
+        // Debug: log options and customPlaceholderImage
+        try {
+          // eslint-disable-next-line no-console
+          console.log('[anonymizeImage] options.customPlaceholderImage:', options.customPlaceholderImage ? (typeof options.customPlaceholderImage + ' len=' + options.customPlaceholderImage.length) : 'none');
+        } catch (e) {}
+        let imageBytes: Uint8Array = placeholderImage;
+        if (options.customPlaceholderImage && typeof options.customPlaceholderImage === 'string') {
+          try {
+            // eslint-disable-next-line no-console
+            console.log('[anonymizeImage] Attempting to decode custom image...');
+            imageBytes = base64ToUint8Array(options.customPlaceholderImage);
+            // eslint-disable-next-line no-console
+            console.log('[anonymizeImage] Decoded custom image bytes length:', imageBytes.length);
+          } catch (e) {
+            // eslint-disable-next-line no-console
+            console.log('[anonymizeImage] Failed to decode custom image, using default.', e);
+            imageBytes = placeholderImage;
+          }
+        } else {
+          // eslint-disable-next-line no-console
+          console.log('[anonymizeImage] No custom image, using default.');
+        }
+        var placeholderImageHash = figma.createImage(imageBytes);
         // Replace the original image fill with the placeholder
         fills[i] = {
           type: "IMAGE",
@@ -194,7 +235,6 @@ function anonymizeImage(node: SceneNode, options: AnonymizeOptions): Promise<voi
         };
       }
     }
-    
     // Only update fills if we actually found and replaced an image
     if (hasImageFill) {
       node.fills = fills;
