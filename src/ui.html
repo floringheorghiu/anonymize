@@ -88,6 +88,13 @@
       <input type="checkbox" id="images">
       Replace images with placeholder
     </label>
+    <div id="custom-placeholder-section" style="margin-bottom: 10px; margin-left: 24px;">
+      <label style="display: flex; align-items: center;">
+        <span style="margin-right: 8px;">Upload your own placeholder image (PNG/JPG, small size recommended):</span>
+        <input type="file" id="customPlaceholderImageInput" accept="image/png,image/jpeg" style="flex:1;">
+      </label>
+      <div id="custom-placeholder-preview" style="margin-top: 6px;"></div>
+    </div>
     <div class="button-container">
       <button type="button" id="anonymize">Anonymize Content</button>
       <button type="button" id="stop" class="secondary" style="display: none">Stop</button>
@@ -124,6 +131,26 @@
     useCurrencyInput.addEventListener('change', updateCurrencyControls);
 
     // Button click handlers
+    let customPlaceholderBase64 = null;
+    const customPlaceholderInput = document.getElementById('customPlaceholderImageInput');
+    const customPlaceholderPreview = document.getElementById('custom-placeholder-preview');
+    if (customPlaceholderInput) {
+      customPlaceholderInput.addEventListener('change', function(event) {
+        const file = customPlaceholderInput.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            customPlaceholderBase64 = e.target.result;
+            customPlaceholderPreview.innerHTML = `<img src='${customPlaceholderBase64}' style='max-width: 100px; max-height: 40px; border: 1px solid #ccc; border-radius: 4px;' alt='Preview'>`;
+          };
+          reader.readAsDataURL(file);
+        } else {
+          customPlaceholderBase64 = null;
+          customPlaceholderPreview.innerHTML = '';
+        }
+      });
+    }
+
     document.getElementById('anonymize').onclick = () => {
       const options = {
         products: document.getElementById('products').checked,
@@ -132,9 +159,11 @@
         useCurrencySelection: useCurrencySelection.checked,
         useCurrencyInput: useCurrencyInput.checked,
         currencySymbol: useCurrencySelection.checked ? currencySymbol.value : undefined,
-        customCurrency: useCurrencyInput.checked ? customCurrency.value : undefined
+        customCurrency: useCurrencyInput.checked ? customCurrency.value : undefined,
+        customPlaceholderImage: customPlaceholderBase64 // Always included
       };
 
+      console.log('customPlaceholderBase64:', customPlaceholderBase64);
       console.log('Anonymize options:', options);
 
       isProcessing = true;
