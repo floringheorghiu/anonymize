@@ -12,7 +12,7 @@ function readImageBytes(path: string): Promise<Uint8Array> {
 // Initialize plugin UI with fixed dimensions
 figma.showUI(ui, {
   width: 400,
-  height: 300,
+  height: 380,
   themeColors: true
 });
 
@@ -26,6 +26,7 @@ interface AnonymizeOptions {
   prices?: boolean;
   products?: boolean;
   images?: boolean;
+  removeUrls?: boolean;
   useCurrencySelection?: boolean;
   currencySymbol?: string;
   useCurrencyInput?: boolean;
@@ -148,6 +149,21 @@ function generateLoremText(length: number): string {
   return result.substring(0, length);
 }
 
+function removeUrlsFromText(node: TextNode, text: string): string {
+  // First, remove Figma hyperlink formatting
+  try {
+    if (node.characters.length > 0) {
+      node.setRangeHyperlink(0, node.characters.length, null);
+    }
+  } catch (e) {
+    console.log('Error removing hyperlinks:', e);
+  }
+  
+  // Then remove URL text patterns
+  const urlPattern = /https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9.-]+\.[a-z]{2,}(?:\/[^\s]*)?/gi;
+  return text.replace(urlPattern, '');
+}
+
 function anonymizeText(node: TextNode, options: AnonymizeOptions): void {
   try {
     // Defensive: Only load font if node.fontName is a FontName (not figma.mixed)
@@ -161,6 +177,11 @@ function anonymizeText(node: TextNode, options: AnonymizeOptions): void {
       // If re-processing for currency change, strip the marker first
       if (wasAnonymized && options.prices && options.useCurrencySelection) {
         textForProcessing = text.slice(0, -ANONYMIZED_MARKER.length);
+      }
+      
+      // Remove URLs if option is enabled
+      if (options.removeUrls) {
+        textForProcessing = removeUrlsFromText(node, textForProcessing);
       }
       if (options.prices && (pricePattern.test(textForProcessing) || percentagePattern.test(textForProcessing))) {
         // Reset regex lastIndex
