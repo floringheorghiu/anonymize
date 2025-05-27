@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.26] - 2025-05-27
+
+### Fixed
+- **Mixed Text Formatting Support**: Fixed critical issue where text nodes with mixed formatting (bold, italic, underline, etc.) were being skipped during anonymization
+  - Previously bold text like "WD Red" would remain unchanged while regular text got anonymized
+  - Now removes all text styling and applies uniform formatting before anonymization
+  - Ensures consistent anonymization across all text regardless of original formatting
+  - Includes robust font fallback system (Inter → Roboto → graceful error handling)
+
+### Technical
+- Enhanced `anonymizeText()` function to detect and handle `figma.mixed` formatting nodes
+- Added font normalization logic to convert mixed formatting to uniform styling
+- Implemented defensive programming with try-catch blocks and font loading fallbacks
+- Maintains compatibility with existing anonymization pipeline and marker system
+
 ## [1.25] - 2025-05-27
 
 ### Added

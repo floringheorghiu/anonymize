@@ -1,6 +1,6 @@
 {
   "name": "figma-anonymize-content",
-  "version": "1.25.0",
+  "version": "1.26.0",
   "description": "Anonymize content in Figma designs",
   "type": "module",
   "main": "code.js",
