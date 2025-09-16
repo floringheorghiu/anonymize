@@ -1,6 +1,13 @@
 import { defineConfig } from 'vite';
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
+
+const placeholderImage = readFileSync(resolve(__dirname, 'src/assets/product_placeholder_image.png'), 'base64');
 
 export default defineConfig({
+  define: {
+    __placeholderImage__: JSON.stringify(placeholderImage),
+  },
   build: {
     target: 'es6',
     lib: {
@@ -15,14 +22,7 @@ export default defineConfig({
       output: {
         format: 'iife',
         extend: true,
-        assetFileNames: (assetInfo) => {
-          if (assetInfo.name === 'product_placeholder_image.png') {
-            return 'assets/[name][extname]';
-          }
-          return 'assets/[name]-[hash][extname]';
-        }
       },
     },
-    assetsInlineLimit: 0 // Don't inline assets as base64
   },
 });

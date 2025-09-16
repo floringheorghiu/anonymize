@@ -12,3 +12,24 @@ body {
 .form-checkbox {
   @apply h-4 w-4 text-[var(--figma-color-bg-brand)] border-[var(--figma-color-border)] rounded focus:ring-[var(--figma-color-bg-brand)];
 }
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-md border-none transition-all duration-200 ease-in-out cursor-pointer;
+  }
+  .btn-primary {
+    @apply bg-[var(--figma-color-bg-brand)] text-[var(--figma-color-text-onbrand)];
+  }
+  .btn-primary:disabled {
+    @apply bg-[var(--figma-color-bg-disabled)] text-[var(--figma-color-text-disabled)] opacity-50 cursor-not-allowed;
+  }
+  .btn-danger {
+    @apply bg-[var(--figma-color-bg-danger)] text-[var(--figma-color-text-onbrand)];
+  }
+  .btn-danger:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply bg-[var(--figma-color-bg-secondary)] text-[var(--figma-color-text)];
+  }
+}

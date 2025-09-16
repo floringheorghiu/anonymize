@@ -7,15 +7,240 @@
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       margin: 0;
-      padding: 0;
-    }
-    #react-page {
       padding: 20px;
+      background: var(--figma-color-bg);
+      color: var(--figma-color-text);
+    }
+    label {
+      display: block;
+      margin-bottom: 10px;
+    }
+    .button-container {
+      margin-top: 20px;
+      display: flex;
+      gap: 8px;
+    }
+    button {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: none;
+      background: var(--figma-color-bg-brand);
+      color: var(--figma-color-text-onbrand);
+      cursor: pointer;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    button.secondary {
+      background: var(--figma-color-bg-secondary);
+      color: var(--figma-color-text);
     }
   </style>
 </head>
 <body>
-  <div id="react-page"></div>
-  <script src="ui.js"></script>
+  <form id="options">
+    <label>
+      <input type="checkbox" id="products" checked>
+      Anonymize product names
+    </label>
+    <label>
+      <input type="checkbox" id="prices" checked>
+      Anonymize prices
+    </label>
+
+    <!-- Currency symbol/acronym replacement controls -->
+    <div style="margin-left: 24px; margin-bottom: 10px;">
+      <label style="display: flex; align-items: center; margin-bottom: 4px;">
+        <input type="checkbox" id="useCurrencySelection">
+        <span style="margin-left: 6px;">Change currency</span>
+        <select id="currencySymbol" style="margin-left: 8px; min-width: 110px;">
+          <option value="$">$ - Dollar</option>
+          <option value="£">£ - Pound</option>
+          <option value="€">€ - Euro</option>
+          <option value="¥">¥ - Yen</option>
+          <option value="₹">₹ - Rupee</option>
+          <option value="₩">₩ - Won</option>
+          <option value="₽">₽ - Ruble</option>
+          <option value="₺">₺ - Lira</option>
+          <option value="₫">₫ - Dong</option>
+          <option value="₦">₦ - Naira</option>
+          <option value="₴">₴ - Hryvnia</option>
+          <option value="₱">₱ - Peso</option>
+          <option value="₲">₲ - Guarani</option>
+          <option value="₵">₵ - Cedi</option>
+          <option value="₡">₡ - Colon</option>
+          <option value="₸">₸ - Tenge</option>
+          <option value="₮">₮ - Tugrik</option>
+          <option value="₼">₼ - Azerbaijani Manat</option>
+          <option value="₾">₾ - Lari</option>
+          <option value="₿">₿ - Bitcoin</option>
+          <option value="¤">¤ - Generic Currency</option>
+        </select>
+      </label>
+      <label style="display: flex; align-items: center;">
+        <input type="checkbox" id="useCurrencyInput">
+        <span style="margin-left: 6px;">Change currency with acronym</span>
+        <input type="text" id="customCurrency" placeholder="USD" maxlength="6" style="margin-left: 8px; width: 60px;">
+      </label>
+    </div>
+    <label>
+      <input type="checkbox" id="images">
+      Replace images with placeholder (PNG/JPG)
+    </label>
+    <div id="custom-placeholder-section" style="margin-bottom: 10px; margin-left: 24px;">
+      <label style="display: flex; align-items: center;">
+        <!-- span style="margin-right: 8px;">Upload image:</span> -->
+        <input type="file" id="customPlaceholderImageInput" accept="image/png,image/jpeg" style="flex:1;">
+      </label>
+      <div id="custom-placeholder-preview" style="margin-top: 6px;"></div>
+    </div>
+    <div class="button-container">
+      <button type="button" id="anonymize">Anonymize Content</button>
+      <button type="button" id="stop" class="secondary" style="display: none">Stop</button>
+      <button type="button" id="cancel" class="secondary">Cancel</button>
+    </div>
+  </form>
+
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px; font-size: 14px; color: #999;">
+    <span>version.1.24</span>
+    <a href="#" id="help-link" style="color: #3b82f6; text-decoration: underline; cursor: pointer;">How to use</a>
+  </div>
+
+  <!-- Help Modal -->
+  <div id="help-modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.35);">
+    <div style="background:#fff; height: 100%; max-width:420px; margin:0px auto; padding:28px 24px 20px 24px; border-radius:0px; box-shadow:0 8px 32px rgba(0,0,0,0.18); position:relative;">
+      <button id="close-help" style="position:absolute; top:10px; right:14px; background:none; border:none; font-size:1.4em; cursor:pointer; color:#888;">×</button>
+      <h2 style="margin-top:0; font-size:1.15em; margin-bottom: 14px;">How to Use Content Anonymizer</h2>
+      <ul style="padding-left: 18px; margin-bottom: 0; font-size:0.9em;">
+        <li>Select which content to anonymize (product names, prices, images).</li>
+        <li>For prices, you can change the currency or use your own acronym.</li>
+        <li>For images, you can upload a PNG or JPG as a placeholder.<br>
+          <b>Note:</b> If you don’t upload a custom image, the embedded placeholder is applied.</li>
+        <li>Select frames or elements, then click <b>Anonymize Content</b> to apply changes.</li>
+        <li>Click <b>Cancel</b> to close the plugin without changes.</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    // Help modal logic
+    document.getElementById('help-link').onclick = function(e) {
+      e.preventDefault();
+      document.getElementById('help-modal').style.display = 'block';
+    };
+    document.getElementById('close-help').onclick = function() {
+      document.getElementById('help-modal').style.display = 'none';
+    };
+    document.getElementById('help-modal').onclick = function(e) {
+      if (e.target === this) this.style.display = 'none';
+    };
+
+    // Initialize plugin state
+    let isProcessing = false;
+
+    // Mutually exclusive currency option logic
+    const useCurrencySelection = document.getElementById('useCurrencySelection');
+    const useCurrencyInput = document.getElementById('useCurrencyInput');
+    const currencySymbol = document.getElementById('currencySymbol');
+    const customCurrency = document.getElementById('customCurrency');
+
+    function updateCurrencyControls() {
+      if (useCurrencySelection.checked) {
+        useCurrencyInput.checked = false;
+        currencySymbol.disabled = false;
+        customCurrency.disabled = true;
+      } else if (useCurrencyInput.checked) {
+        useCurrencySelection.checked = false;
+        currencySymbol.disabled = true;
+        customCurrency.disabled = false;
+      } else {
+        currencySymbol.disabled = true;
+        customCurrency.disabled = true;
+      }
+    }
+
+    useCurrencySelection.addEventListener('change', updateCurrencyControls);
+    useCurrencyInput.addEventListener('change', updateCurrencyControls);
+
+    // Button click handlers
+    let customPlaceholderBase64 = null;
+    const customPlaceholderInput = document.getElementById('customPlaceholderImageInput');
+    const customPlaceholderPreview = document.getElementById('custom-placeholder-preview');
+    if (customPlaceholderInput) {
+      customPlaceholderInput.addEventListener('change', function(event) {
+        const file = customPlaceholderInput.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            customPlaceholderBase64 = e.target.result;
+            customPlaceholderPreview.innerHTML = `<img src='${customPlaceholderBase64}' style='max-width: 100px; max-height: 40px; border: 1px solid #ccc; border-radius: 4px;' alt='Preview'>`;
+          };
+          reader.readAsDataURL(file);
+        } else {
+          customPlaceholderBase64 = null;
+          customPlaceholderPreview.innerHTML = '';
+        }
+      });
+    }
+
+    document.getElementById('anonymize').onclick = () => {
+      const options = {
+        products: document.getElementById('products').checked,
+        prices: document.getElementById('prices').checked,
+        images: document.getElementById('images').checked,
+        useCurrencySelection: useCurrencySelection.checked,
+        useCurrencyInput: useCurrencyInput.checked,
+        currencySymbol: useCurrencySelection.checked ? currencySymbol.value : undefined,
+        customCurrency: useCurrencyInput.checked ? customCurrency.value : undefined,
+        customPlaceholderImage: customPlaceholderBase64 // Always included
+      };
+
+      console.log('customPlaceholderBase64:', customPlaceholderBase64);
+      console.log('Anonymize options:', options);
+
+      isProcessing = true;
+      document.getElementById('anonymize').disabled = true;
+      document.getElementById('stop').style.display = 'block';
+
+      parent.postMessage({ pluginMessage: { type: 'anonymize', options } }, '*');
+    };
+
+    // Initialize controls on load
+    updateCurrencyControls();
+
+    document.getElementById('stop').onclick = () => {
+      parent.postMessage({ pluginMessage: { type: 'stop' } }, '*');
+    };
+
+    document.getElementById('cancel').onclick = () => {
+      parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
+    };
+
+    // Listen for messages from the plugin code
+    window.onmessage = (event) => {
+      const msg = event.data.pluginMessage;
+
+      if (msg.type === 'updateState') {
+        if (msg.state === 'start') {
+          document.getElementById('anonymize').disabled = true;
+          document.getElementById('stop').style.display = 'block';
+        } else if (msg.state === 'complete' || msg.state === 'stop' || msg.state === 'error') {
+          isProcessing = false;
+          document.getElementById('anonymize').disabled = false;
+          document.getElementById('stop').style.display = 'none';
+        }
+
+        if (msg.message) {
+          console.log(msg.message);
+        }
+
+        // Update button state based on selection
+        if (!isProcessing) {
+          document.getElementById('anonymize').disabled = !msg.hasSelection;
+        }
+      }
+    };
+  </script>
 </body>
 </html>
