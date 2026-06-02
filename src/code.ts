@@ -12,7 +12,7 @@ function readImageBytes(path: string): Promise<Uint8Array> {
 // Initialize plugin UI with fixed dimensions
 figma.showUI(ui, {
   width: 400,
-  height: 300,
+  height: 380,
   themeColors: true
 });
 
@@ -26,6 +26,7 @@ interface AnonymizeOptions {
   prices?: boolean;
   products?: boolean;
   images?: boolean;
+  removeUrls?: boolean;
   useCurrencySelection?: boolean;
   currencySymbol?: string;
   useCurrencyInput?: boolean;
@@ -148,19 +149,51 @@ function generateLoremText(length: number): string {
   return result.substring(0, length);
 }
 
+function removeUrlsFromText(node: TextNode, text: string): string {
+  // First, remove Figma hyperlink formatting
+  try {
+    if (node.characters.length > 0) {
+      node.setRangeHyperlink(0, node.characters.length, null);
+    }
+  } catch (e) {
+    console.log('Error removing hyperlinks:', e);
+  }
+  
+  // Then remove URL text patterns
+  const urlPattern = /https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9.-]+\.[a-z]{2,}(?:\/[^\s]*)?/gi;
+  return text.replace(urlPattern, '');
+}
+
 function anonymizeText(node: TextNode, options: AnonymizeOptions): void {
   try {
-    // Defensive: Only load font if node.fontName is a FontName (not figma.mixed)
+    var text = node.characters;
+    const wasAnonymized = isTextAnonymized(text);
+    // Only skip if already anonymized and NOT changing currency
+    if (text.length === 1 || (wasAnonymized && !(options.prices && options.useCurrencySelection))) return;
+    
+    // Handle mixed formatting by normalizing to default font first
+    var fontToUse = { family: "Inter", style: "Regular" };
+    
+    // If node has uniform formatting, use that font; otherwise use default
     if (typeof node.fontName === 'object' && 'family' in node.fontName && 'style' in node.fontName) {
-      figma.loadFontAsync(node.fontName as FontName).then(function() {
-      var text = node.characters;
-      const wasAnonymized = isTextAnonymized(text);
-      // Only skip if already anonymized and NOT changing currency
-      if (text.length === 1 || (wasAnonymized && !(options.prices && options.useCurrencySelection))) return;
+      fontToUse = node.fontName as FontName;
+    }
+    
+    figma.loadFontAsync(fontToUse).then(function() {
+      // Remove all formatting by applying uniform font to entire text
+      if (node.fontName === figma.mixed) {
+        node.fontName = fontToUse;
+      }
+      
       let textForProcessing = text;
       // If re-processing for currency change, strip the marker first
       if (wasAnonymized && options.prices && options.useCurrencySelection) {
         textForProcessing = text.slice(0, -ANONYMIZED_MARKER.length);
+      }
+      
+      // Remove URLs if option is enabled
+      if (options.removeUrls) {
+        textForProcessing = removeUrlsFromText(node, textForProcessing);
       }
       if (options.prices && (pricePattern.test(textForProcessing) || percentagePattern.test(textForProcessing))) {
         // Reset regex lastIndex
@@ -173,8 +206,31 @@ function anonymizeText(node: TextNode, options: AnonymizeOptions): void {
         var targetLength = Math.max(2, text.length - 2);
         node.characters = markAsAnonymized(generateLoremText(targetLength));
       }
+    }).catch(function(e) {
+      // Fallback: try with system default if Inter fails
+      console.log('Font loading failed, trying fallback:', e);
+      figma.loadFontAsync({ family: "Roboto", style: "Regular" }).then(function() {
+        node.fontName = { family: "Roboto", style: "Regular" };
+        // Retry the anonymization logic with fallback font
+        let textForProcessing = text;
+        if (wasAnonymized && options.prices && options.useCurrencySelection) {
+          textForProcessing = text.slice(0, -ANONYMIZED_MARKER.length);
+        }
+        if (options.removeUrls) {
+          textForProcessing = removeUrlsFromText(node, textForProcessing);
+        }
+        if (options.prices && (pricePattern.test(textForProcessing) || percentagePattern.test(textForProcessing))) {
+          pricePattern.lastIndex = 0;
+          percentagePattern.lastIndex = 0;
+          node.characters = markAsAnonymized(anonymizePrice(textForProcessing, options));
+        } else if (options.products && !pricePattern.test(text)) {
+          var targetLength = Math.max(2, text.length - 2);
+          node.characters = markAsAnonymized(generateLoremText(targetLength));
+        }
+      }).catch(function(e2) {
+        console.log('All font loading failed:', e2);
+      });
     });
-    } // End if fontName is FontName
   } catch (e) {
     console.log('anonymizeText error:', e);
   }

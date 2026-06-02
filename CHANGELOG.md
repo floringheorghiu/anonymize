@@ -1,5 +1,38 @@
 # Changelog
 
+## [1.26] - 2025-05-27
+
+### Fixed
+- **Mixed Text Formatting Support**: Fixed critical issue where text nodes with mixed formatting (bold, italic, underline, etc.) were being skipped during anonymization
+  - Previously bold text like "WD Red" would remain unchanged while regular text got anonymized
+  - Now removes all text styling and applies uniform formatting before anonymization
+  - Ensures consistent anonymization across all text regardless of original formatting
+  - Includes robust font fallback system (Inter → Roboto → graceful error handling)
+
+### Technical
+- Enhanced `anonymizeText()` function to detect and handle `figma.mixed` formatting nodes
+- Added font normalization logic to convert mixed formatting to uniform styling
+- Implemented defensive programming with try-catch blocks and font loading fallbacks
+- Maintains compatibility with existing anonymization pipeline and marker system
+
+## [1.25] - 2025-05-27
+
+### Added
+- **URL/Link Removal Feature**: Added new "Remove URLs/Links" checkbox option to automatically remove hyperlinks and URL text from text nodes during anonymization
+  - Removes both Figma hyperlink formatting and plain text URLs (https://, www., domain patterns)
+  - Integrates seamlessly with existing anonymization pipeline
+  - Enabled by default for enhanced privacy protection
+
+### Changed
+- **Increased Plugin UI Height**: Expanded plugin window from 300px to 380px to eliminate scroll bar and improve user experience
+- **Enhanced Text Processing**: URL removal occurs before price/product anonymization to prevent conflicts
+
+### Technical
+- Added `removeUrls` option to `AnonymizeOptions` interface
+- Implemented `removeUrlsFromText()` function with comprehensive URL pattern matching
+- Maintained compatibility with existing anonymization marker system
+- Followed project best practices for simplified, reliable Figma plugin development
+
 ## [Unreleased] - 2025-04-16
 
 ### Added

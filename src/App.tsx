@@ -5,6 +5,7 @@ interface AnonymizeOptions {
   products: boolean;
   prices: boolean;
   images: boolean;
+  removeUrls: boolean;
   useCurrencySelection?: boolean;
   useCurrencyInput?: boolean;
 }
@@ -39,6 +40,7 @@ export default function App() {
     products: true,
     prices: true,
     images: false,
+    removeUrls: true,
     useCurrencySelection: false,
     useCurrencyInput: false,
   });
@@ -171,6 +173,17 @@ export default function App() {
             disabled={isProcessing}
           />
           <span>Anonymize Images</span>
+        </label>
+        
+        <label className="flex items-center space-x-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={options.removeUrls}
+            onChange={() => handleOptionChange('removeUrls')}
+            className="form-checkbox"
+            disabled={isProcessing}
+          />
+          <span>Remove URLs/Links</span>
         </label>
 
         {/* Currency symbol/acronym replacement controls */}

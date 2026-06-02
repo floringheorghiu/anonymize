@@ -1,11 +1,12 @@
 {
   "name": "Content Anonymizer",
-  "id": "figma-anonymize-content",
+  "id": "1509274099048681088",
   "api": "1.0.0",
   "main": "dist/code.js",
   "ui": "dist/ui.html",
   "editorType": ["figma"],
   "permissions": ["currentuser"],
+  "documentAccess": "dynamic-page",
   "networkAccess": {
     "allowedDomains": ["none"]
   }

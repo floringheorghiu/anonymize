@@ -1,6 +1,6 @@
 {
   "name": "figma-anonymize-content",
-  "version": "1.0.0-stable",
+  "version": "1.26.0",
   "description": "Anonymize content in Figma designs",
   "type": "module",
   "main": "code.js",
@@ -37,7 +37,14 @@
     "postcss": "^8.4.32",
     "tailwindcss": "^3.3.6",
     "typescript": "^5.2.2",
-    "vite": "^6.2.3",
+    "vite": "^6.2.7",
     "vite-plugin-singlefile": "^0.13.5"
+  },
+  "overrides": {
+    "glob": "^10.5.0",
+    "lodash": "^4.17.23",
+    "rollup": "^4.59.0",
+    "minimatch": "^9.0.7",
+    "picomatch": "^2.3.2"
   }
 }

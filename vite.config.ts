@@ -1,14 +1,16 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
+import react from '@vitejs/plugin-react';
 
 export default defineConfig({
+  plugins: [react()],
   build: {
-    target: 'es6',
+    target: 'es2015',
     outDir: 'dist',
     emptyOutDir: false,
     rollupOptions: {
       input: {
-        ui: resolve(__dirname, 'src/ui.html')
+        index: resolve(__dirname, 'index.html')
       },
       output: {
         entryFileNames: '[name].js',
