@@ -36,3 +36,6 @@ Screenshot 2025-04-16 at 9.56.47 AM.png
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# Local-only support assets (Figma files, reference screenshots, photos, notes)
+Support files/
